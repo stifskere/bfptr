@@ -77,6 +77,18 @@ that pointer using the `brainfuck_on_ptr` function.
 The `code` parameter is the code to be run, delimited by `\0` as 
 per the C standard.
 
+### BFPTR_INPUT_PREFIX
+
+This is a macro that defines a prefix for character input in your program, when the `,` instruction
+is evaluated this will print before asking for any character.
+
+If this isn't set it will default to `""`.
+
+### BFPTR_EXCEPTION
+
+This is an internal macro, which is not intended to be used by the end user, it defines
+an exception with a code and exits the program with `-1` when called.
+
 ## Good to know
 
 You have more information on the code comments, hovering the mouse

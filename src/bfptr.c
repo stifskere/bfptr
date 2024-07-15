@@ -3,13 +3,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#ifdef BF_EXCEPTION
-    #undef BF_EXCEPTION
+#ifdef BFPTR_EXCEPTION
+    #undef BFPTR_EXCEPTION
 #endif
 
-#define BF_EXCEPTION(code, reason) \
-    printf(code " BRAINFUCK ERROR: " reason); \
+#define BFPTR_EXCEPTION(code, reason) \
+    printf("BRAINFUCK " code " EXCEPTION: " reason); \
     exit(-1)
+
+#ifndef BFPTR_INPUT_PREFIX
+    #define BFPTR_INPUT_PREFIX ""
+#endif
 
 __attribute__((unused)) void brainfuck_on_ptr(void *ptr, int limit, char *code) {
     int loop_count = 0;
@@ -25,7 +29,7 @@ __attribute__((unused)) void brainfuck_on_ptr(void *ptr, int limit, char *code) 
     }
 
     if (loop_check != 0) {
-        BF_EXCEPTION("CODE_ERROR", "Loops don't match.");
+        BFPTR_EXCEPTION("CODE_ERROR", "Loops don't match.");
     }
 
     unsigned char *first_mem = ptr;
@@ -35,7 +39,7 @@ __attribute__((unused)) void brainfuck_on_ptr(void *ptr, int limit, char *code) 
     int stack_top = 0;
 
     if (loop_idx_stack == (void *)0) {
-        BF_EXCEPTION("MEMORY_ERROR", "Failed to allocate loop stack.");
+        BFPTR_EXCEPTION("MEMORY_ERROR", "Failed to allocate loop stack.");
     }
 
     int code_len = 0;
@@ -59,8 +63,11 @@ __attribute__((unused)) void brainfuck_on_ptr(void *ptr, int limit, char *code) 
         }
         else if (code[i] == '.')
             putchar(*mem);
-        else if (code[i] == ',')
-            *mem = (char)getchar();
+        else if (code[i] == ',') {
+            printf("%s", BFPTR_INPUT_PREFIX);
+            *mem = (char) getchar();
+            putchar('\n');
+        }
     }
 
     free(loop_idx_stack);
@@ -70,7 +77,7 @@ __attribute__((unused)) void brainfuck(char *code) {
     unsigned char *mem = (unsigned char *)malloc(30000);
 
     if (mem == (void *)0) {
-        BF_EXCEPTION("MEMORY_ERROR", "Couldn't allocate 30000 bytes for memory pointer.");
+        BFPTR_EXCEPTION("MEMORY_ERROR", "Couldn't allocate 30000 bytes for memory pointer.");
     }
 
     for (int i = 0; i < 30000; i++)
