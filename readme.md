@@ -77,17 +77,21 @@ that pointer using the `brainfuck_on_ptr` function.
 The `code` parameter is the code to be run, delimited by `\0` as 
 per the C standard.
 
-### BFPTR_INPUT_PREFIX
+### brainfuck_input_prefix
 
-This is a macro that defines a prefix for character input in your program, when the `,` instruction
-is evaluated this will print before asking for any character.
+This `brainfuck_input_prefix` function has the following signature
 
-If this isn't set it will default to `""`.
+```c
+void brainfuck_input_prefix(char *prefix);
+```
 
-### BFPTR_EXCEPTION
+And it will set the prefix for your `,` instructions in your brainfuck code,
+by default, it simply stops the thread waiting for a character input.
 
-This is an internal macro, which is not intended to be used by the end user, it defines
-an exception with a code and exits the program with `-1` when called.
+If you run this function, it will print whatever you set before running the
+`,` in normal brainfuck code.
+
+The `prefix` parameter is the prefix to be set, delimited by `\0` as per the C standard.
 
 ## Good to know
 
