@@ -2,6 +2,24 @@
 #define BFPTR_BFPTR_H
 
 /*
+    This function sets the prefix for the brainfuck "," instruction.
+
+    By default, when you use "," in your brainfuck code, the thread
+    stops waiting for a character to be introduced.
+
+    To make this clearer, you can set a prefix with this function.
+
+    If you do not run this function, the prefix by default will be "".
+
+    If you want a line break before each input, you will need to use this
+    function to set it.
+
+    @param char *prefix:
+        The prefix to set for your input instructions.
+*/
+__attribute__((unused)) void brainfuck_input_prefix(char *prefix);
+
+/*
     This function runs brainfuck on an existing pointer,
     it modifies the passed pointer according to the brainfuck
     code you passed.

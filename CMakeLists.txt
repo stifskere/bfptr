@@ -3,4 +3,4 @@ project(bfptr C)
 
 set(CMAKE_C_STANDARD 11)
 
-add_library(bfptr STATIC src/bfptr.c)
+add_library(bfptr STATIC src/bfptr.c include/bfptr.h)

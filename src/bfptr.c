@@ -3,17 +3,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#ifdef BFPTR_EXCEPTION
-    #undef BFPTR_EXCEPTION
-#endif
-
 #define BFPTR_EXCEPTION(code, reason) \
     printf("BRAINFUCK " code " EXCEPTION: " reason); \
     exit(-1)
 
-#ifndef BFPTR_INPUT_PREFIX
-    #define BFPTR_INPUT_PREFIX ""
-#endif
+char *BFPTR_INPUT_PREFIX = "";
+
+__attribute__((unused)) void brainfuck_input_prefix(char *prefix) {
+    BFPTR_INPUT_PREFIX = prefix;
+}
 
 __attribute__((unused)) void brainfuck_on_ptr(void *ptr, int limit, char *code) {
     int loop_count = 0;
@@ -66,7 +64,6 @@ __attribute__((unused)) void brainfuck_on_ptr(void *ptr, int limit, char *code) 
         else if (code[i] == ',') {
             printf("%s", BFPTR_INPUT_PREFIX);
             *mem = (char) getchar();
-            putchar('\n');
         }
     }
 
