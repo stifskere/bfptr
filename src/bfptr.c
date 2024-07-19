@@ -1,4 +1,4 @@
-#include "../include/bfptr.h"
+#include "../../CTests/lib/bfptr.h"
 
 #include <stdio.h>
 #include <stdlib.h>

@@ -1,6 +1,6 @@
 
 #include <stdlib.h>
-#include <bfptr.h>
+#include "../../CTests/lib/bfptr.h"
 #include <string.h>
 
 int main() {

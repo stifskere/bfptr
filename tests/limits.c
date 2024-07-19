@@ -1,6 +1,6 @@
 
 #include <stdlib.h>
-#include <bfptr.h>
+#include "../../CTests/lib/bfptr.h"
 
 int main() {
     unsigned char *memory = (unsigned char *)malloc(1);
