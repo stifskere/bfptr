@@ -38,60 +38,170 @@ available for use.
 #include <bfptr.h>
 ```
 
-And you can use the functions it exposes which are `brainfuck_on_ptr` and
-`brainfuck`.
+Now you can use the functions this library exposes, which are 2, `brainfuck_on_ctx`
+which runs brainfuck on a specified context and `brainfuck` which
+runs brainfuck on a default isolated context.
 
-### brainfuck_on_ptr
+### brainfuck_on_ctx
 
-The `brainfuck_on_ptr` function has the following signature
+This function asks for a `bfptr_context` which is defined the following
+way in the `bfptr.h` file.
 
 ```c
-void brainfuck_on_ptr(void *ptr, int limit, char *code);
+typedef struct {
+
+    /*
+         You can or either pass `NULL` or a pointer,
+         if you pass `NULL`, the code will generate a 30_000
+         position array for you and will free it automatically.
+    */
+    unsigned char *memory;
+
+    /*
+        The memory_size is only required if you pass
+        a pointer to memory, otherwise you can set this
+        to a negative value such as -1.
+        Doing so will make the program understand that you
+        didn't pass a memory pointer.
+    */
+    int memory_size;
+
+    /*
+        The code is always required, and it's what will be
+        interpreted by the function itself.
+    */
+    const char *code;
+
+    /*
+        The output is a `char *` that stores the current memory
+        address when the `.` instruction is used in the brainfuck
+        code.
+
+        The output should be big enough to store all the printed
+        data, the output can also be null and stdout will be used
+        instead.
+
+        The function will automatically
+        NULL terminate it with a '\0' as per the C standard on
+        strings.
+
+        This pointer will be moved, so make sure to store a
+        copy.
+    */
+    unsigned char *output;
+
+    /*
+        If this boolean value is set to <true>,
+        the error will be returned instead of thrown.
+    */
+    bool return_error;
+
+    /*
+        Set the prefix for the input instruction,
+        by default when the code is waiting for an input
+        character, you won't get notified.
+
+        To get notified, set the input_prefix which will be
+        printed every time an `,` in the brainfuck code, and
+        before the input instruction.
+
+        You can set it to NULL, so no prefix prints
+        before input.
+    */
+    const char *input_prefix;
+
+    /*
+        If set to true, this waits for the program
+        to finish before any stdout if this is false,
+        the output will be printed directly when the
+        instruction `.` is found.
+    */
+    bool defer_output;
+
+} bfptr_context;
 ```
 
-And it will run the brainfuck code on your pointer,
-which will modify it as per your brainfuck code.
+This structure acts as a context for your brainfuck execution,
+now, the `brainfuck_on_ctx` function has the following signature:
 
-The `void *ptr` parameter is treated internally as `unsigned char *` as per
-the brainfuck rules, and it's the memory you run your brainfuck code on.
+```c
+bfptr_exception *brainfuck_on_ctx(bfptr_context ctx);
+```
 
-The `limit` parameter defines the bounds for this pointer,
-if you move with `<` behind 0 the pointer will
-point back to limit, and the same, if you move
-with `>` beyond the limit it will point back to 0.
+The function returns a `bfptr_exception` pointer which is null
+on two cases, there was no error or the return_error option
+is disabled, which will lead to the program exiting with code `-1`.
 
-The `code` parameter is the code to be run, delimited by `\0` as
-per the C standard.
+if there was an error and the return_error is true in the context
+an instance of `bfptr_exception` is returned, this instance
+must be freed after consumption by using `free()` on the result.
+
+The structure looks like this in the `bfptr.h` file
+
+```c
+typedef union {
+
+    /*
+        The error code, you can check
+        the definitions in the documentation
+        of <bfptr_error_code>
+    */
+    bfptr_error_code code;
+
+    /*
+        A more specific reason for the error.
+    */
+    char *reason;
+
+} bfptr_exception;
+```
+
+The `bfptr_error_code` is an enum which acts as a generic error
+definition, the values are the following: 
+
+
+> Invalid parameters were passed to
+> the execution context.
+> 
+>    `BFPTR_INVALID_PARAMETERS = 1 << 0`
+
+> Invalid or badly formatted brainfuck
+> most probably an unclosed loop.
+> 
+> `BFPTR_CODE_ERROR = 1 << 1`
+
+
+> Generic allocation error, not enough
+> space for an internal pointer allocation
+> or the memory itself if managed.
+>
+> `BFPTR_MEMORY_ERROR = 1 << 2`
 
 ### brainfuck
 
 The `brainfuck` function has the following signature
 
 ```c
-void brainfuck(char *code);
+bfptr_exception *brainfuck(char *code);
 ```
 
-This function allocates a 30000-byte buffer and runs your brainfuck code in
-that pointer using the `brainfuck_on_ptr` function.
-
-The `code` parameter is the code to be run, delimited by `\0` as 
+The `code` parameter is the code to be run, delimited by `\0` as
 per the C standard.
 
-### brainfuck_input_prefix
-
-This `brainfuck_input_prefix` function has the following signature
+This function runs `brainfuck_on_ctx` with a default context, which
+is the following
 
 ```c
-void brainfuck_input_prefix(char *prefix);
+(bfptr_context){
+    .memory = NULL, // a default 30000 position array that's freed automatically.
+    .memory_size = -1, // no size override specified for the context.
+    .output = NULL, // stdout as default.
+    .return_error = false, // will throw on error.
+    .code = code, // the parameter you passed as code.
+    .defer_output = true, // will wait for stdin before output.
+    .input_prefix = NULL // nothing is printed before input.
+}; 
 ```
-
-And it will set the prefix for your `,` instructions in your brainfuck code,
-by default, it simply stops the thread waiting for a character input.
-
-If you run this function, it will print whatever you set before running the
-`,` in normal brainfuck code.
-
-The `prefix` parameter is the prefix to be set, delimited by `\0` as per the C standard.
 
 ## Good to know
 
