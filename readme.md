@@ -1,6 +1,9 @@
 
 # BFPTR, Run brainfuck on your pointers.
 
+![tests](https://github.com/stifskere/bfptr/actions/workflows/cmake-multi-platform.yml/badge.svg)
+![release](https://img.shields.io/github/v/release/stifskere/bfptr?style=flat)
+
 This library exposes two functions that evaluate brainfuck
 on runtime.
 
