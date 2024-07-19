@@ -1,0 +1,263 @@
+#ifndef BFPTR_BFPTR_H
+#define BFPTR_BFPTR_H
+
+#define ATTR_UNUSED __attribute__((unused))
+
+#include <stdio.h>
+#include <stdbool.h>
+
+/*
+    This struct is meant as a run context for your
+    brainfuck operations with `brainfuck_on_ctx`;
+    it defines how the next run will behave.
+
+    ======================================================
+
+    unsigned char *memory:
+         You can or either pass `NULL` or a pointer,
+         if you pass `NULL`, the code will generate a 30_000
+         position array for you and will free it automatically.
+
+    int memory_size:
+        The memory_size is only required if you pass
+        a pointer to memory, otherwise you can set this
+        to a negative value such as -1.
+        Doing so will make the program understand that you
+        didn't pass a memory pointer.
+
+    const char *code:
+        The code is always required, and it's what will be
+        interpreted by the function itself.
+
+    unsigned char *output:
+        The output is a `char *` that stores the current memory
+        address when the `.` instruction is used in the brainfuck
+        code.
+
+        The output should be big enough to store all the printed
+        data, the output can also be null and stdout will be used
+        instead.
+
+        The function will automatically
+        NULL terminate it with a '\0' as per the C standard on
+        strings.
+
+        This pointer will be moved, so make sure to store a
+        copy.
+
+    bool return_error:
+        If this boolean value is set to <true>,
+        the error will be returned instead of thrown.
+
+    const char *input_prefix:
+        Set the prefix for the input instruction,
+        by default when the code is waiting for an input
+        character, you won't get notified.
+
+        To get notified, set the input_prefix which will be
+        printed every time an `,` in the brainfuck code, and
+        before the input instruction.
+
+        You can set it to NULL, so no prefix prints
+        before input.
+
+    bool defer_output:
+        If set to true, this waits for the program
+        to finish before any stdout if this is false,
+        the output will be printed directly when the
+        instruction `.` is found.
+
+*/
+typedef struct {
+
+    /*
+         You can or either pass `NULL` or a pointer,
+         if you pass `NULL`, the code will generate a 30_000
+         position array for you and will free it automatically.
+    */
+    unsigned char *memory;
+
+    /*
+        The memory_size is only required if you pass
+        a pointer to memory, otherwise you can set this
+        to a negative value such as -1.
+        Doing so will make the program understand that you
+        didn't pass a memory pointer.
+    */
+    int memory_size;
+
+    /*
+        The code is always required, and it's what will be
+        interpreted by the function itself.
+    */
+    const char *code;
+
+    /*
+        The output is a `char *` that stores the current memory
+        address when the `.` instruction is used in the brainfuck
+        code.
+
+        The output should be big enough to store all the printed
+        data, the output can also be null and stdout will be used
+        instead.
+
+        The function will automatically
+        NULL terminate it with a '\0' as per the C standard on
+        strings.
+
+        This pointer will be moved, so make sure to store a
+        copy.
+    */
+    unsigned char *output;
+
+    /*
+        If this boolean value is set to <true>,
+        the error will be returned instead of thrown.
+    */
+    bool return_error;
+
+    /*
+        Set the prefix for the input instruction,
+        by default when the code is waiting for an input
+        character, you won't get notified.
+
+        To get notified, set the input_prefix which will be
+        printed every time an `,` in the brainfuck code, and
+        before the input instruction.
+
+        You can set it to NULL, so no prefix prints
+        before input.
+    */
+    const char *input_prefix;
+
+    /*
+        If set to true, this waits for the program
+        to finish before any stdout if this is false,
+        the output will be printed directly when the
+        instruction `.` is found.
+    */
+    bool defer_output;
+
+} bfptr_context;
+
+/*
+    This enum contains the error code as
+    enumerated for error identification.
+*/
+typedef enum {
+
+    /*
+        Invalid parameters were passed to
+        the execution context.
+    */
+    BFPTR_INVALID_PARAMETERS = 1 << 0,
+
+    /*
+        Invalid or badly formatted brainfuck
+        most probably an unclosed loop.
+    */
+    BFPTR_CODE_ERROR = 1 << 1,
+
+    /*
+        Generic allocation error, not enough
+        space for an internal pointer allocation
+        or the memory itself if managed.
+    */
+    BFPTR_MEMORY_ERROR = 1 << 2
+
+} bfptr_error_code;
+
+/*
+    This union contains an error, usually
+    generated by brainfuck_on_ctx to denote
+    a misuse or invalid environment.
+*/
+typedef union {
+
+    /*
+        The error code, you can check
+        the definitions in the documentation
+        of <bfptr_error_code>
+    */
+    bfptr_error_code code;
+
+    /*
+        A more specific reason for the error.
+    */
+    char *reason;
+
+} bfptr_exception;
+
+/*
+    This function runs brainfuck on a specified context,
+    to understand that context specifications you must
+    read the <bfptr_context> documentation.
+
+    ======================================================
+
+    @param bfptr_context ctx:
+        The context to run brainfuck on.
+
+    @exception BFPTR_INVALID_PARAMETERS:
+        This exception will be thrown when a
+        parameter constraint doesn't match, for example,
+        setting a size and leaving the memory on null
+        or vice versa.
+
+    @exception BFPTR_MEMORY_ERROR:
+        Generic allocation error, not enough
+        space for an internal pointer allocation
+        or the memory itself if managed.
+
+    @exception BFPTR_CODE_ERROR:
+        Invalid or badly formatted brainfuck
+        most probably an unclosed loop.
+
+    @returns
+        If any error occurred, the return value will be a
+        <bfptr_exception *> object that must be freed,
+        otherwise null will be returned, if an error
+        occurred any reference the context had is unsafe
+        to use as a preterm throw occurred.
+
+    Learn how brainfuck works:
+        https://gist.github.com/roachhd/dce54bec8ba55fb17d3a
+*/
+ATTR_UNUSED bfptr_exception *brainfuck_on_ctx(bfptr_context ctx);
+
+/*
+    This function runs brainfuck_on_ctx with a default context,
+    that context has the following configuration:
+
+    .memory = NULL // a default 30000 position array that's freed automatically.
+
+    .memory_size = -1 // no size override specified for the context.
+
+    .code = code // the parameter you passed as code.
+
+    .output = NULL // stdout as default.
+
+    .return_error = false // will throw on error.
+
+    .defer_output = true // will wait for stdin before output.
+
+     Learn how brainfuck works:
+        https://gist.github.com/roachhd/dce54bec8ba55fb17d3a
+
+    ======================================================
+
+    @param char *code:
+        The code to be interpreted by the interpreter.
+
+    @exception BFPTR_CODE_ERROR:
+        Invalid or badly formatted brainfuck
+        most probably an unclosed loop.
+
+    @exception BFPTR_MEMORY_ERROR:
+        Generic allocation error, not enough
+        space for an internal pointer allocation
+        or the memory itself if managed.
+*/
+ATTR_UNUSED void brainfuck(const char *code);
+
+#endif
