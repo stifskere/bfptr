@@ -4,6 +4,11 @@
 ![tests](https://github.com/stifskere/bfptr/actions/workflows/cmake-multi-platform.yml/badge.svg)
 ![release](https://img.shields.io/github/v/release/stifskere/bfptr?style=flat)
 
+> [!warning]
+> **This repository is unmaintained**, this project is damned as finished, there are no dependencies so it will never be updated.
+>
+> This project was never intended to use on production, if you want to use it as a joke you can still download it.
+
 This library exposes two functions that evaluate brainfuck
 on runtime.
 
